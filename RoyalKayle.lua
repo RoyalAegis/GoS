@@ -62,7 +62,7 @@ OnTick(function(myHero)
         end
 
 		if IsReady(_W) and KayleMenu.Combo.WSettings.W:Value() and ValidTarget(target,900) and (GetPercentMP(myHero) >= KayleMenu.Combo.WSettings.WMana:Value()) then
-			if KayleMenu.Combo.WSettings.WMode:Value() == 1 and (GetCurrentHP(myHero) <= KayleMenu.Combo.WSettings.WHP:Value()) then
+			if KayleMenu.Combo.WSettings.WMode:Value() == 1 and (GetPercentHP(myHero) <= KayleMenu.Combo.WSettings.WHP:Value()) then
 				CastTargetSpell(myHero, _W)
 			elseif KayleMenu.Combo.WSettings.WMode:Value() == 2 and GetDistance(target, myHero) >= 625 then
 				CastTargetSpell(myHero, _W)
@@ -99,6 +99,8 @@ OnTick(function(myHero)
 
 	for i, enemy in pairs(GetEnemyHeroes()) do
 
+		local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+		
         if KayleMenu.Killsteal.KillQ:Value() and Ready(_Q) and ValidTarget(target, 650) then
 			if GetCurrentHP(enemy) + GetMagicShield(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 0, 10 + 50*GetCastLevel(myHero, _Q) + 0.6*GetBonusAP(myHero) + GetBonusDmg(myHero)) then
 			    CastTargetSpell(enemy, _Q) 
