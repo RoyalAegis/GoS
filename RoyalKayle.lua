@@ -80,7 +80,7 @@ OnTick(function(myHero)
 	if IsReady(_R) and KayleMenu.Combo.RSettings.R:Value() then 
 			
 			for _, ally in pairs(GetAllyHeroes()) do			
-				if KayleMenu.Combo.RSettings.RMode:Value() == 1 and (GetPercentHP(myHero) <= KayleMenu.Combo.RSettings.UltHP:Value()) and EnemiesAround(GetOrigin(ally), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() then
+				if KayleMenu.Combo.RSettings.RMode:Value() == 1 and (GetPercentHP(myHero) <= KayleMenu.Combo.RSettings.UltHP:Value()) and EnemiesAround(GetOrigin(myHero), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() then
 					CastTargetSpell(myHero, _R)
 				elseif KayleMenu.Combo.RSettings.RMode:Value() == 2 then
 				if not IsDead(ally) and GetPercentHP(ally) <= KayleMenu.Combo.RSettings.UltHP:Value() and EnemiesAround(GetOrigin(ally), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() and not IsDead(ally) then
