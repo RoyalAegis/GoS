@@ -34,6 +34,8 @@ KayleMenu.Drawings:Boolean("DrawQ", "Draw Q Range", true)
 KayleMenu.Drawings:Boolean("DrawW", "Draw W&R Range", true)
 KayleMenu.Drawings:Slider("Quality", "Quality", 125, 1, 255)
 
+local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+
 
 OnDraw(function(myHero)
 
@@ -41,7 +43,7 @@ OnDraw(function(myHero)
 		DrawCircle(GetOrigin(myHero), 650, 1, KayleMenu.Drawings.Quality:Value(), GoS.Green)
 		--DrawCircle(Vector3D, radius, width, quality, color)
 	end
-	if KayleMenu.Drawings.DrawW:Value() and IsReady(_W) or IsReady(_R) then
+	if KayleMenu.Drawings.DrawW:Value() and (IsReady(_W) or IsReady(_R)) then
 		DrawCircle(GetOrigin(myHero), 900, 1, KayleMenu.Drawings.Quality:Value(), GoS.Yellow)
 	end
 end)
@@ -76,12 +78,11 @@ OnTick(function(myHero)
 	end
 
 	if IsReady(_R) and KayleMenu.Combo.RSettings.R:Value() then 
-
-		if KayleMenu.Combo.RSettings.RMode:Value() == 1 and (GetPercentHP(myHero) <= KayleMenu.Combo.RSettings.UltHP:Value()) and EnemiesAround(GetOrigin(ally), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() then
-			CastTargetSpell(myHero, _R)
-		elseif KayleMenu.Combo.RSettings.RMode:Value() == 2 then
 			
-			for _, ally in pairs(GetAllyHeroes()) do
+			for _, ally in pairs(GetAllyHeroes()) do			
+				if KayleMenu.Combo.RSettings.RMode:Value() == 1 and (GetPercentHP(myHero) <= KayleMenu.Combo.RSettings.UltHP:Value()) and EnemiesAround(GetOrigin(ally), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() then
+					CastTargetSpell(myHero, _R)
+				elseif KayleMenu.Combo.RSettings.RMode:Value() == 2 then
 				if not IsDead(ally) and GetPercentHP(ally) <= KayleMenu.Combo.RSettings.UltHP:Value() and EnemiesAround(GetOrigin(ally), 900) >= KayleMenu.Combo.RSettings.Enemies:Value() and not IsDead(ally) then
 					if GetDistance(ally) <= 900 then
 						CastTargetSpell(ally, _R)	
@@ -98,11 +99,9 @@ OnTick(function(myHero)
 	end
 
 	for i, enemy in pairs(GetEnemyHeroes()) do
-
-		local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
 		
-        if KayleMenu.Killsteal.KillQ:Value() and Ready(_Q) and ValidTarget(target, 650) then
-			if GetCurrentHP(enemy) + GetMagicShield(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 0, 10 + 50*GetCastLevel(myHero, _Q) + 0.6*GetBonusAP(myHero) + GetBonusDmg(myHero)) then
+        if KayleMenu.Killsteal.KillQ:Value() then
+			if Ready(_Q) and GetCurrentHP(enemy) + GetMagicShield(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 0, 10 + 50*GetCastLevel(myHero, _Q) + 0.6*GetBonusAP(myHero) + GetBonusDmg(myHero)) and ValidTarget(target, 650) then
 			    CastTargetSpell(enemy, _Q) 
 		    end
 	    end
@@ -116,5 +115,7 @@ OnTick(function(myHero)
    end
 
 end)
+
+
 
 print("[Royal] Kayle prototype loaded!")
