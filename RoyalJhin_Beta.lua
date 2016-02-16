@@ -48,6 +48,8 @@ local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") 
 	local WPred = nil
 	local RPred = nil
 	local FirstShot = nil
+	local SecondShot = nil
+	local ThirdShot = nil
 
 OnUpdateBuff(function(Object,buff) 
 	if buff.Name == "jhinespotteddebuff" then
@@ -113,6 +115,8 @@ OnDraw (function (myHero)
 	if WPred ~= nil then DrawCircle(WPred.PredPos,50,1,60,GoS.Red) end
 	if RPred ~= nil then DrawCircle(RPred.PredPos,50,1,60,GoS.Yellow) end
 	if FirstShot ~= nil then DrawCircle(FirstShot.PredPos,50,1,60,GoS.White) end
+	if SecondShot ~= nil then DrawCircle(SecondShot.PredPos,50,1,60,GoS.Green) end
+	if ThirdShot ~= nil then DrawCircle(ThirdShot.PredPos,50,1,60,GoS.Blue) end
 	if true then DrawCircle(posTarget, 100,1, 60, GoS.Green) end
 end)
 
@@ -130,8 +134,10 @@ OnTick(function(myHero)
 			FirstShot = RPred
 		elseif RCast == 1 then
 			ShotUlt(target)
+			SecondShot = RPred
 		elseif RCast == 2 then
 			ShotUlt(target)
+			ThirdShot = RPred
 		elseif RCast == 3 then
 			ShotUlt(target)
 		end
