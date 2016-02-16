@@ -42,7 +42,7 @@ JhinMenu.Drawings:Boolean("DrawQ", "Draw Q's Range", true)
 JhinMenu.Drawings:Boolean("DrawW", "Draw W's Range", true)
 JhinMenu.Drawings:Boolean("DrawE", "Draw E's Range", true)
 
-local RTarget = TargetSelector(3000,TARGET_LOW_HP_PRIORITY,DAMAGE_PHYSICAL,true,false)
+local RTarget = TargetSelector(3000,TARGET_LOW_HP_PRIORITY,DAMAGE_PHYSICAL,false,false)
 local isMarked = false
 local RCasting = false
 local RCast = 0
@@ -92,7 +92,7 @@ OnProcessSpellComplete(function(Object, spell)
     MoveToXYZ(GetMousePos())
     elseif spell.name == "JhinE" then
     CastEmote(EMOTE_DANCE) 
-    MoveToXYZ(GetMousePos())
+	MoveToXYZ(GetMousePos())
     end
   end
 end)
@@ -114,7 +114,7 @@ OnTick(function(myHero)
 	local Ruined = GetItemSlot(myHero,3153)
 	local Yomuu = GetItemSlot(myHero,3142)
 
-	if RCasting and ValidTarget(ULTTarget, 3000) then
+	if RCasting and ValidTarget(ULTTarget, 3000) and not IsDead(ULTTarget) then
 	    if RCast == 0 then
 			local R1Pred = GetPredictionForPlayer(GetOrigin(myHero),ULTTarget,GetMoveSpeed(ULTTarget),1700,250,3000,75,false,true)
 			if R1Pred.HitChance == 1 then
@@ -156,10 +156,14 @@ OnTick(function(myHero)
 		end
 
 	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
-			CastTargetSpell(target, _E)
-			PrintChat("E TARGET: " ..GetObjectName(target))
-        IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
-			if IsMarked == true and IsReady(_W) and ValidTarget(target, 2500) then
+
+		local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,100,false,true)
+				if EPred.HitChance == 1 then
+					CastSkillShot(_E, EPred.PredPos)
+				end
+		end
+        if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
+			if IsMarked == true and ValidTarget(target, 2500) then
 				local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1400,250,2500,100,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
@@ -178,7 +182,7 @@ OnTick(function(myHero)
 		end
     end -- End combo mode
 
-	if IOW:Mode() == "LastHit" or "LaneClear" and not RCasting then
+	if IOW:Mode() == "LastHit" or  IOW:Mode() == "LaneClear" and not RCasting then
 		if JhinMenu.Misc.FarmQ:Value() then
 			for i,minion in pairs(minionManager.objects) do
 				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
@@ -192,19 +196,25 @@ OnTick(function(myHero)
 	for i, enemy in pairs(GetEnemyHeroes()) do
 		
         if JhinMenu.Killsteal.StealQ:Value() then
-			if Ready(_Q) and GetCurrentHP(enemy) + GetMagicShield(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 550) then
+			if Ready(_Q) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 550) then
 			    CastTargetSpell(enemy, _Q) 
 		    end
 	    end
 
 		if JhinMenu.Killsteal.StealW:Value() then
-			if Ready(_W) and GetCurrentHP(enemy) + GetMagicShield(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
+			if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
 			    local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),1400,250,2500,220,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
 		    end
 	    end
+
+		if Ignite and JhinMenu.Killsteal.StealIgnite:Value() then
+        if IsReady(Ignite) and 20*GetLevel(myHero)+50 > GetCurrentHP(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*3 and ValidTarget(enemy, 600) then
+        CastTargetSpell(enemy, Ignite)
+		end
+		end
 
     end
 	end
