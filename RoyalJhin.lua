@@ -159,7 +159,7 @@ OnTick(function(myHero)
 		end
         if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
 			if IsMarked and ValidTarget(target, 2500) then
-				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,750,2500,50,false,true)
+				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),math.huge,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -215,7 +215,7 @@ OnTick(function(myHero)
 
 		if JhinMenu.Killsteal.StealW:Value() then
 			if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
-			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),2000,750,2500,50,false,true)
+			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),math.huge,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -231,10 +231,10 @@ OnTick(function(myHero)
     end
 	end
 
-	if JhinMenu.Misc.Farsight:Value() and GetLevel(myHero) > 8 and GetDistance(myHero,basePos) < 550 then
+	if JhinMenu.Misc.Farsight:Value() and GetLevel(myHero) > 8 then 
 	if GetItemID(myHero,ITEM_7) ~= 3363 then
 		BuyItem(3363)
-	end
+	end -- Noddy pls
 end
 
 end)
