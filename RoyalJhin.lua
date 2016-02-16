@@ -80,6 +80,7 @@ OnProcessSpell(function(unit,spell)
 
 	if spell.name == "JhinRShotMis" then
 		RCast = RCast + 1
+		ShouldCast = true
 	end
 
 	if spell.name == "JhinRShotMis4" then ResetUlt() end
@@ -106,7 +107,7 @@ end)
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
 	local posTarget = GetOrigin(GetCurrentTarget())
-	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,550,1,60,GoS.Red) end
+	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,600,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
 end)
@@ -141,7 +142,7 @@ OnTick(function(myHero)
 				CastTargetSpell(target,GetItemSlot(myHero,3153))
 			end
 		end
-		if Yomuu >= 1 and ValidTarget(target,550) and JhinMenu.Misc.UseYoumuu:Value() then
+		if Yomuu >= 1 and ValidTarget(target,750) and JhinMenu.Misc.UseYoumuu:Value() then
 			if CanUseSpell(myHero,GetItemSlot(myHero,3142)) == READY then
 				CastSpell(GetItemSlot(myHero,3142))
 			end
@@ -165,9 +166,9 @@ OnTick(function(myHero)
 
 		if IsReady(_Q) and JhinMenu.Combo.QSettings.Q:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.QSettings.QMana:Value()) then
 			for i,minion in pairs(minionManager.objects) do
-				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and MinionsAround(GetOrigin(minion), 500) <= 3 then
+				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and MinionsAround(GetOrigin(minion), 500) <= 3 then
 					CastTargetSpell(minion, _Q)
-				elseif ValidTarget(target, 550) then
+				elseif ValidTarget(target, 600) then
 					CastTargetSpell(target, _Q)
 				end
 			end
@@ -177,7 +178,7 @@ OnTick(function(myHero)
 	if IOW:Mode() == "LastHit" and not RCasting then
 		if JhinMenu.Farming.FarmQ:Value() then
 			for i,minion in pairs(minionManager.objects) do
-				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
+				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
 					CastTargetSpell(minion, _Q)
 				end
 			end
@@ -187,7 +188,7 @@ OnTick(function(myHero)
 	if IOW:Mode() == "LaneClear" and not RCasting then
 		if JhinMenu.Farming.FarmQ:Value() then
 			for i,minion in pairs(minionManager.objects) do
-				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
+				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
 					CastTargetSpell(minion, _Q)
 				end
 			end
