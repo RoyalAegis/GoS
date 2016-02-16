@@ -14,6 +14,8 @@ JhinMenu.Combo:Menu("WSettings", "W - Settings")
 JhinMenu.Combo.WSettings:Boolean("W", "Use W", true)
 JhinMenu.Combo.WSettings:Slider("WMana", "Use W if %Mana >", 60, 1, 100, 1)
 
+JhinMenu.Combo.WSettings:Menu("Gapclose", "Gapclose")
+
 JhinMenu.Combo:Menu("ESettings", "E - Settings")
 JhinMenu.Combo.ESettings:Boolean("E", "Use E", false)
 JhinMenu.Combo.ESettings:Slider("EMana", "Use E if %Mana >", 60, 1, 100, 1)
@@ -102,7 +104,7 @@ OnProcessSpellComplete(function(Object, spell)
   end
 end)
 
-
+AddGapcloseEvent(_E, 750, true, JhinMenu.Combo.WSettings.Gapclose)
 
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
@@ -148,15 +150,14 @@ OnTick(function(myHero)
 			end
 		end
 
-	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
+	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) and not IsMarked then
 
 		EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,260,false,true)
 				if EPred.HitChance == 1 then
 					CastSkillShot(_E, EPred.PredPos)
 				end
-		end
-        if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
-			if IsMarked == true and ValidTarget(target, 2500) then
+        elseif IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
+			if IsMarked and ValidTarget(target, 2500) then
 				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
