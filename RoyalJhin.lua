@@ -104,7 +104,7 @@ OnProcessSpellComplete(function(Object, spell)
   end
 end)
 
-AddGapcloseEvent(_E, 750, true, JhinMenu.Combo.WSettings.Gapclose)
+AddGapcloseEvent(_E, 750, false, JhinMenu.Combo.WSettings.Gapclose)
 
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
@@ -150,13 +150,14 @@ OnTick(function(myHero)
 			end
 		end
 
-	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) and not IsMarked then
+	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
 
-		EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,260,false,true)
+			EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1000,250,750,260,false,true)
 				if EPred.HitChance == 1 then
 					CastSkillShot(_E, EPred.PredPos)
 				end
-        elseif IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
+		end
+        if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
 			if IsMarked and ValidTarget(target, 2500) then
 				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
