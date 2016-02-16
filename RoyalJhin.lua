@@ -18,6 +18,9 @@ JhinMenu.Combo:Menu("ESettings", "E - Settings")
 JhinMenu.Combo.ESettings:Boolean("E", "Use E", false)
 JhinMenu.Combo.ESettings:Slider("EMana", "Use E if %Mana >", 60, 1, 100, 1)
 
+JhinMenu.Combo:Menu("RSettings", "R - Settings")
+JhinMenu.Combo.RSettings:Boolean("R", "Use R (Shooting)", false)
+
 JhinMenu:Menu("Killsteal", "Killsteal")
 
 JhinMenu.Killsteal:Boolean("Steal", "Enable Killsteal", true)
@@ -25,11 +28,16 @@ JhinMenu.Killsteal:Boolean("StealQ", "Use Q", true)
 JhinMenu.Killsteal:Boolean("StealW", "Use W", true)
 JhinMenu.Killsteal:Boolean("StealIgnite", "Use Ignite", true)
 
+JhinMenu:Menu("Farming", "Farming")
+
+JhinMenu.Farming:Boolean("FarmQ", "Use Q", true)
+JhinMenu.Farming:Boolean("FarmE", "Use E (LaneClear only)", true)
+
 JhinMenu:Menu("Misc", "Misc")
 
-JhinMenu.Misc:Boolean("FarmQ", "Use Farming Q", true)
 JhinMenu.Misc:Boolean("UseBotrk", "Use BoTRK", true)
 JhinMenu.Misc:Boolean("UseYoumuu", "Use Youmuu's Ghostblade", true)
+JhinMenu.Misc:Boolean("Farsight", "Buy Farsight Alteration", true)
 
 JhinMenu:Menu("Drawings", "Drawings")
 
@@ -37,19 +45,15 @@ JhinMenu.Drawings:Boolean("DrawQ", "Draw Q's Range", true)
 JhinMenu.Drawings:Boolean("DrawW", "Draw W's Range", true)
 JhinMenu.Drawings:Boolean("DrawE", "Draw E's Range", true)
 
-local RTarget = TargetSelector(3000,TARGET_LOW_HP_PRIORITY,DAMAGE_PHYSICAL,false,false)
 local isMarked = false
 local RCasting = false
 local RCast = 0
 local ShouldCast = false
 local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
--------------------------------
-	local EPred = nil
-	local WPred = nil
-	local RPred = nil
-	local FirstShot = nil
-	local SecondShot = nil
-	local ThirdShot = nil
+local EPred = nil
+local WPred = nil
+local RPred = nil
+
 
 OnUpdateBuff(function(Object,buff) 
 	if buff.Name == "jhinespotteddebuff" then
@@ -64,26 +68,21 @@ OnRemoveBuff(function(Object,buff)
 end)
 
 OnProcessSpell(function(unit,spell)
-  if unit == myHero then
+  if unit == myHero and JhinMenu.Combo.RSettings.R:Value() then
 
-    if spell.name == "JhinR" then
-    IOW.movementEnabled = false
-    IOW.attacksEnabled = false
-    IsChanneled = true
-    RCasting = true
-	PrintChat("ULT Activated")
-	PrintChat("Current Target - R: " ..GetObjectName(GetCurrentTarget()))
+	if spell.name == "JhinR" then
+		IOW.movementEnabled = false
+		IOW.attacksEnabled = false
+		IsChanneled = true
+		RCasting = true
+		ShouldCast = true
 	end
+
 	if spell.name == "JhinRShotMis" then
-	RCast = RCast + 1
+		RCast = RCast + 1
 	end
-	if spell.name == "JhinRShotMis4" then
-    IOW.movementEnabled = true
-    IOW.attacksEnabled = true
-    IsChanneled = false
-    RCasting = false
-	RCast = 0
-	end
+
+	if spell.name == "JhinRShotMis4" then ResetUlt() end
   end
 end)
 
@@ -110,37 +109,25 @@ OnDraw (function (myHero)
 	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,550,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
---------------------------------------
-	if EPred ~= nil then DrawCircle(EPred.PredPos,50,1,60,GoS.Red) end
-	if WPred ~= nil then DrawCircle(WPred.PredPos,50,1,60,GoS.Red) end
-	if RPred ~= nil then DrawCircle(RPred.PredPos,50,1,60,GoS.Yellow) end
-	if FirstShot ~= nil then DrawCircle(FirstShot.PredPos,50,1,60,GoS.White) end
-	if SecondShot ~= nil then DrawCircle(SecondShot.PredPos,50,1,60,GoS.Green) end
-	if ThirdShot ~= nil then DrawCircle(ThirdShot.PredPos,50,1,60,GoS.Blue) end
-	if true then DrawCircle(posTarget, 100,1, 60, GoS.Green) end
 end)
 
 OnTick(function(myHero)	
 
 	local target = GetCurrentTarget()
-	local ULTTarget = RTarget:GetTarget()
 	local Blade = GetItemSlot(myHero,3144)
 	local Ruined = GetItemSlot(myHero,3153)
 	local Yomuu = GetItemSlot(myHero,3142)
 
 	if RCasting and ValidTarget(target, 3000) and not IsDead(target) and IsVisible(target) then
-	    if RCast == 0 then
+		if RCast == 1 then
 			ShotUlt(target)
-			FirstShot = RPred
-		elseif RCast == 1 then
-			ShotUlt(target)
-			SecondShot = RPred
 		elseif RCast == 2 then
 			ShotUlt(target)
-			ThirdShot = RPred
 		elseif RCast == 3 then
 			ShotUlt(target)
 		end
+	else
+		ResetUlt()
 	end
 
 	if IOW:Mode() == "Combo" then
@@ -169,7 +156,7 @@ OnTick(function(myHero)
 		end
         if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
 			if IsMarked == true and ValidTarget(target, 2500) then
-				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,2500,100,false,true)
+				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -187,8 +174,8 @@ OnTick(function(myHero)
 		end
     end -- End combo mode
 
-	if IOW:Mode() == "LastHit" or  IOW:Mode() == "LaneClear" and not RCasting then
-		if JhinMenu.Misc.FarmQ:Value() then
+	if IOW:Mode() == "LastHit" and not RCasting then
+		if JhinMenu.Farming.FarmQ:Value() then
 			for i,minion in pairs(minionManager.objects) do
 				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
 					CastTargetSpell(minion, _Q)
@@ -196,6 +183,23 @@ OnTick(function(myHero)
 			end
 		end
 	end -- End Clear Mode
+
+	if IOW:Mode() == "LaneClear" and not RCasting then
+		if JhinMenu.Farming.FarmQ:Value() then
+			for i,minion in pairs(minionManager.objects) do
+				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 550) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
+					CastTargetSpell(minion, _Q)
+				end
+			end
+		end
+		if IsReady(_E) and JhinMenu.Farming.FarmE:Value() then
+           local BestPos, BestHit = GetFarmPosition(750, 260, MINION_ENEMY)
+           if BestPos and BestHit > 0 then 
+           CastSkillShot(_E, BestPos)
+           end
+	    end
+
+	end
 
 	if JhinMenu.Killsteal.Steal:Value() and not RCasting then
 	for i, enemy in pairs(GetEnemyHeroes()) do
@@ -208,7 +212,7 @@ OnTick(function(myHero)
 
 		if JhinMenu.Killsteal.StealW:Value() then
 			if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
-			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),1400,250,2500,220,false,true)
+			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),2000,750,2500,50,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -224,27 +228,34 @@ OnTick(function(myHero)
     end
 	end
 
+	if JhinMenu.Misc.Farsight:Value() and GetLevel(myHero) > 8 and GetDistance(myHero,basePos) < 550 then
+	if GetItemID(myHero,ITEM_7) ~= 3363 then
+		BuyItem(3363)
+	end
+end
+
 end)
 
 function ShotUlt(target)
-
 	RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2500,250,3000,50,false,true)
-			if RPred.HitChance == 1 then
-				CastSkillShot(_R, RPred.PredPos)
-				PrintChat("Shot Bullet")
-				end
+		if RPred.HitChance == 1 and ShouldCast then
+			CastSkillShot(_R, RPred.PredPos)
+		end
+end
 
+function ResetUlt()
+	IOW.movementEnabled = true
+	IOW.attacksEnabled = true
+	IsChanneled = false
+	RCasting = false
+	RCast = 0
+	ShouldCast = false
 end
 
 OnLoseVision(function(Object)
-
-	if Object == GetCurrentTarget() then
-
-		PrintChat("Lost vision of: " ..GetObjectName(Object))
-		PrintChat("Current Target: " ..GetObjectName(GetCurrentTarget()))
-
+	if Object == GetCurrentTarget() and RCasting then
+	ShouldCast = false
 	end
-
 end)
 
 print("[Royal] Jhin prototype loaded!")
