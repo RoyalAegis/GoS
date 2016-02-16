@@ -205,37 +205,33 @@ OnTick(function(myHero)
 	end
 
 	if JhinMenu.Killsteal.Steal:Value() and not RCasting then
-	for i, enemy in pairs(GetEnemyHeroes()) do
-		
-        if JhinMenu.Killsteal.StealQ:Value() then
-			if Ready(_Q) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 550) then
-			    CastTargetSpell(enemy, _Q) 
-		    end
-	    end
-
-		if JhinMenu.Killsteal.StealW:Value() then
-			if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
-			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),math.huge,750,2500,50,false,true)
-				if WPred.HitChance == 1 then
-					CastSkillShot(_W, WPred.PredPos)
+		for i, enemy in pairs(GetEnemyHeroes()) do
+			if JhinMenu.Killsteal.StealQ:Value() then
+				if Ready(_Q) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 600) then
+				    CastTargetSpell(enemy, _Q) 
+			    end
+			end	
+			if JhinMenu.Killsteal.StealW:Value() then
+				if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
+				    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),math.huge,750,2500,50,false,true)
+					if WPred.HitChance == 1 then
+						CastSkillShot(_W, WPred.PredPos)
+					end
+			    end
+			 end
+			if Ignite and JhinMenu.Killsteal.StealIgnite:Value() then
+				if IsReady(Ignite) and 20*GetLevel(myHero)+50 > GetCurrentHP(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*3 and ValidTarget(enemy, 600) then
+					CastTargetSpell(enemy, Ignite)
 				end
-		    end
-	    end
-
-		if Ignite and JhinMenu.Killsteal.StealIgnite:Value() then
-        if IsReady(Ignite) and 20*GetLevel(myHero)+50 > GetCurrentHP(enemy)+GetDmgShield(enemy)+GetHPRegen(enemy)*3 and ValidTarget(enemy, 600) then
-        CastTargetSpell(enemy, Ignite)
+			end
 		end
-		end
-
-    end
 	end
 
 	if JhinMenu.Misc.Farsight:Value() and GetLevel(myHero) > 8 then 
-	if GetItemID(myHero,ITEM_7) ~= 3363 then
-		BuyItem(3363)
-	end -- Noddy pls
-end
+		if GetItemID(myHero,ITEM_7) ~= 3363 then
+			BuyItem(3363)
+		end -- Noddy pls
+	end
 
 end)
 
