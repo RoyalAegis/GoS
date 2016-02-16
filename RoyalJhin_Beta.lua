@@ -41,7 +41,13 @@ local RTarget = TargetSelector(3000,TARGET_LOW_HP_PRIORITY,DAMAGE_PHYSICAL,false
 local isMarked = false
 local RCasting = false
 local RCast = 0
+local ShouldCast = false
 local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+-------------------------------
+	local EPred = nil
+	local WPred = nil
+	local RPred = nil
+	local FirstShot = nil
 
 OnUpdateBuff(function(Object,buff) 
 	if buff.Name == "jhinespotteddebuff" then
@@ -102,6 +108,11 @@ OnDraw (function (myHero)
 	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,550,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
+--------------------------------------
+	if EPred ~= nil then DrawCircle(EPred.PredPos,50,1,60,GoS.Red) end
+	if WPred ~= nil then DrawCircle(WPred.PredPos,50,1,60,GoS.Red) end
+	if RPred ~= nil then DrawCircle(RPred.PredPos,50,1,60,GoS.Yellow) end
+	if FirstShot ~= nil then DrawCircle(FirstShot.PredPos,50,1,60,GoS.White) end
 	if true then DrawCircle(posTarget, 100,1, 60, GoS.Green) end
 end)
 
@@ -115,25 +126,14 @@ OnTick(function(myHero)
 
 	if RCasting and ValidTarget(target, 3000) and not IsDead(target) and IsVisible(target) then
 	    if RCast == 0 then
-			local R1Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
-			if R1Pred.HitChance == 1 then
-				CastSkillShot(_R, R1Pred.PredPos)
-			end
+			ShotUlt(target)
+			FirstShot = RPred
 		elseif RCast == 1 then
-			local R2Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
-			if R2Pred.HitChance == 1 then
-				CastSkillShot(_R, R2Pred.PredPos)
-			end
+			ShotUlt(target)
 		elseif RCast == 2 then
-			local R3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
-			if R3Pred.HitChance == 1 then
-				CastSkillShot(_R, R3Pred.PredPos)
-			end
+			ShotUlt(target)
 		elseif RCast == 3 then
-			local R4Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
-			if R4Pred.HitChance == 1 then
-				CastSkillShot(_R, R4Pred.PredPos)
-			end
+			ShotUlt(target)
 		end
 	end
 
@@ -156,14 +156,14 @@ OnTick(function(myHero)
 
 	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
 
-		local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,260,false,true)
+		EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,260,false,true)
 				if EPred.HitChance == 1 then
 					CastSkillShot(_E, EPred.PredPos)
 				end
 		end
         if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
 			if IsMarked == true and ValidTarget(target, 2500) then
-				local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,2500,100,false,true)
+				WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,2500,100,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -202,7 +202,7 @@ OnTick(function(myHero)
 
 		if JhinMenu.Killsteal.StealW:Value() then
 			if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
-			    local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),1400,250,2500,220,false,true)
+			    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),1400,250,2500,220,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -219,6 +219,16 @@ OnTick(function(myHero)
 	end
 
 end)
+
+function ShotUlt(target)
+
+	RPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2500,250,3000,50,false,true)
+			if RPred.HitChance == 1 then
+				CastSkillShot(_R, RPred.PredPos)
+				PrintChat("Shot Bullet")
+				end
+
+end
 
 OnLoseVision(function(Object)
 
