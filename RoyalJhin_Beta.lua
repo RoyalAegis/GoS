@@ -31,11 +31,6 @@ JhinMenu.Misc:Boolean("FarmQ", "Use Farming Q", true)
 JhinMenu.Misc:Boolean("UseBotrk", "Use BoTRK", true)
 JhinMenu.Misc:Boolean("UseYoumuu", "Use Youmuu's Ghostblade", true)
 
-
-JhinMenu.Misc:Boolean("FarmQ", "Use Farming Q", true)
-JhinMenu.Misc:Boolean("UseBotrk", "Use BoTRK", true)
-JhinMenu.Misc:Boolean("UseYoumuu", "Use Youmuu's Ghostblade", true)
-
 JhinMenu:Menu("Drawings", "Drawings")
 
 JhinMenu.Drawings:Boolean("DrawQ", "Draw Q's Range", true)
@@ -68,6 +63,8 @@ OnProcessSpell(function(unit,spell)
     IOW.attacksEnabled = false
     IsChanneled = true
     RCasting = true
+	PrintChat("ULT Activated")
+	PrintChat("Current Target - R: " ..GetObjectName(GetCurrentTarget()))
 	end
 	if spell.name == "JhinRShotMis" then
 	RCast = RCast + 1
@@ -101,9 +98,11 @@ end)
 
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
+	local posTarget = GetOrigin(GetCurrentTarget())
 	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,550,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
+	if true then DrawCircle(posTarget, 100,1, 60, GoS.Green) end
 end)
 
 OnTick(function(myHero)	
@@ -114,24 +113,24 @@ OnTick(function(myHero)
 	local Ruined = GetItemSlot(myHero,3153)
 	local Yomuu = GetItemSlot(myHero,3142)
 
-	if RCasting and ValidTarget(ULTTarget, 3000) and not IsDead(ULTTarget) then
+	if RCasting and ValidTarget(target, 3000) and not IsDead(target) and IsVisible(target) then
 	    if RCast == 0 then
-			local R1Pred = GetPredictionForPlayer(GetOrigin(myHero),ULTTarget,GetMoveSpeed(ULTTarget),1700,250,3000,75,false,true)
+			local R1Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
 			if R1Pred.HitChance == 1 then
 				CastSkillShot(_R, R1Pred.PredPos)
 			end
 		elseif RCast == 1 then
-			local R2Pred = GetPredictionForPlayer(GetOrigin(myHero),ULTTarget,GetMoveSpeed(ULTTarget),1700,250,3000,75,false,true)
+			local R2Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
 			if R2Pred.HitChance == 1 then
 				CastSkillShot(_R, R2Pred.PredPos)
 			end
 		elseif RCast == 2 then
-			local R3Pred = GetPredictionForPlayer(GetOrigin(myHero),ULTTarget,GetMoveSpeed(ULTTarget),1700,250,3000,75,false,true)
+			local R3Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
 			if R3Pred.HitChance == 1 then
 				CastSkillShot(_R, R3Pred.PredPos)
 			end
 		elseif RCast == 3 then
-			local R4Pred = GetPredictionForPlayer(GetOrigin(myHero),ULTTarget,GetMoveSpeed(ULTTarget),1700,250,3000,75,false,true)
+			local R4Pred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,3000,75,false,true)
 			if R4Pred.HitChance == 1 then
 				CastSkillShot(_R, R4Pred.PredPos)
 			end
@@ -157,14 +156,14 @@ OnTick(function(myHero)
 
 	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
 
-		local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,100,false,true)
+		local EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),750,250,750,260,false,true)
 				if EPred.HitChance == 1 then
 					CastSkillShot(_E, EPred.PredPos)
 				end
 		end
         if IsReady(_W) and JhinMenu.Combo.WSettings.W:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.WSettings.WMana:Value()) then
 			if IsMarked == true and ValidTarget(target, 2500) then
-				local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1400,250,2500,100,false,true)
+				local WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),2000,250,2500,100,false,true)
 				if WPred.HitChance == 1 then
 					CastSkillShot(_W, WPred.PredPos)
 				end
@@ -217,6 +216,17 @@ OnTick(function(myHero)
 		end
 
     end
+	end
+
+end)
+
+OnLoseVision(function(Object)
+
+	if Object == GetCurrentTarget() then
+
+		PrintChat("Lost vision of: " ..GetObjectName(Object))
+		PrintChat("Current Target: " ..GetObjectName(GetCurrentTarget()))
+
 	end
 
 end)
