@@ -14,8 +14,6 @@ JhinMenu.Combo:Menu("WSettings", "W - Settings")
 JhinMenu.Combo.WSettings:Boolean("W", "Use W", true)
 JhinMenu.Combo.WSettings:Slider("WMana", "Use W if %Mana >", 60, 1, 100, 1)
 
-JhinMenu.Combo.WSettings:Menu("Gapclose", "Gapclose")
-
 JhinMenu.Combo:Menu("ESettings", "E - Settings")
 JhinMenu.Combo.ESettings:Boolean("E", "Use E", false)
 JhinMenu.Combo.ESettings:Slider("EMana", "Use E if %Mana >", 60, 1, 100, 1)
@@ -34,6 +32,7 @@ JhinMenu:Menu("Farming", "Farming")
 
 JhinMenu.Farming:Boolean("FarmQ", "Use Q", true)
 JhinMenu.Farming:Boolean("FarmE", "Use E (LaneClear only)", true)
+JhinMenu.Farming:Slider("FarmingMana", "Farm if %Mana >", 30, 1, 100, 1)
 
 JhinMenu:Menu("Misc", "Misc")
 
@@ -46,6 +45,7 @@ JhinMenu:Menu("Drawings", "Drawings")
 JhinMenu.Drawings:Boolean("DrawQ", "Draw Q's Range", true)
 JhinMenu.Drawings:Boolean("DrawW", "Draw W's Range", true)
 JhinMenu.Drawings:Boolean("DrawE", "Draw E's Range", true)
+JhinMenu.Drawings:Boolean("DrawR", "Draw R's Range", true)
 
 local isMarked = false
 local RCasting = false
@@ -54,7 +54,10 @@ local ShouldCast = false
 local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
 local EPred = nil
 local WPred = nil
+local FindRadius = 0
 local RPred = nil
+local target = GetCurrentTarget()
+local OldTarget = target
 
 
 OnUpdateBuff(function(Object,buff) 
@@ -77,15 +80,24 @@ OnProcessSpell(function(unit,spell)
 		IOW.attacksEnabled = false
 		IsChanneled = true
 		RCasting = true
-		ShouldCast = true
+		OldTarget = GetCurrentTarget()
+
+		DelayAction(function() 
+			ResetUlt()
+		end, 10)
 	end
 
 	if spell.name == "JhinRShotMis" then
 		RCast = RCast + 1
 		ShouldCast = true
+		DelayAction(function() 
+			ResetUlt()
+		end, 10 - 3*RCast)
 	end
 
-	if spell.name == "JhinRShotMis4" then ResetUlt() end
+	if spell.name == "JhinRShotMis4" then
+	ResetUlt() 
+	end
   end
 end)
 
@@ -100,11 +112,9 @@ OnProcessSpellComplete(function(Object, spell)
     elseif spell.name == "JhinE" then
     CastEmote(EMOTE_DANCE) 
 	MoveToXYZ(GetMousePos())
-    end
+	end
   end
 end)
-
-AddGapcloseEvent(_E, 750, false, JhinMenu.Combo.WSettings.Gapclose)
 
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
@@ -112,26 +122,20 @@ OnDraw (function (myHero)
 	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,600,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
+	if JhinMenu.Drawings.DrawR:Value() then DrawCircle(pos,3500,1,60,GoS.Cyan) end
 end)
 
 OnTick(function(myHero)	
 
-	local target = GetCurrentTarget()
+	target = GetCurrentTarget()
 	local Blade = GetItemSlot(myHero,3144)
 	local Ruined = GetItemSlot(myHero,3153)
 	local Yomuu = GetItemSlot(myHero,3142)
+	local TotalDamage = GetBaseDamage(myHero) + GetBonusDmg(myHero)
+	FindRadius = 2 * math.ceil(GetDistance(OldTarget) / 4.6)
 
-	if RCasting and ValidTarget(target, 3000) and not IsDead(target) and IsVisible(target) then
-		if RCast == 1 then
-			ShotUlt(target)
-		elseif RCast == 2 then
-			ShotUlt(target)
-		elseif RCast == 3 then
-			ShotUlt(target)
-		end
-	else
-		ResetUlt()
-	end
+	if RCasting and ValidTarget(target, 3500) and IsVisible(target) and ShouldCast and RCast > 0 and not IsDead(OldTarget) then ShotUlt(target) end
+	if RCasting and IsDead(OldTarget) and (EnemiesAround(OldTarget, FindRadius) <= 1 or not ValidTarget(target, 1700)) then ResetUlt() end
 
 	if IOW:Mode() == "Combo" then
 
@@ -152,7 +156,7 @@ OnTick(function(myHero)
 
 	    if IsReady(_E) and ValidTarget(target, 750) and JhinMenu.Combo.ESettings.E:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.ESettings.EMana:Value()) then
 
-			EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target),1000,250,750,260,false,true)
+			EPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(target), 750, 250, 750, 260, false, true)
 				if EPred.HitChance == 1 then
 					CastSkillShot(_E, EPred.PredPos)
 				end
@@ -168,7 +172,7 @@ OnTick(function(myHero)
 
 		if IsReady(_Q) and JhinMenu.Combo.QSettings.Q:Value() and (GetPercentMP(myHero) >= JhinMenu.Combo.QSettings.QMana:Value()) then
 			for i,minion in pairs(minionManager.objects) do
-				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and MinionsAround(GetOrigin(minion), 500) <= 3 then
+				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and EnemiesAround(GetOrigin(minion), 500) > 0 and MinionsAround(GetOrigin(minion), 500) <= 3 then
 					CastTargetSpell(minion, _Q)
 				elseif ValidTarget(target, 600) then
 					CastTargetSpell(target, _Q)
@@ -178,7 +182,7 @@ OnTick(function(myHero)
     end -- End combo mode
 
 	if IOW:Mode() == "LastHit" and not RCasting then
-		if JhinMenu.Farming.FarmQ:Value() then
+		if JhinMenu.Farming.FarmQ:Value() and (GetPercentMP(myHero) >= JhinMenu.Farming.FarmingMana:Value()) then
 			for i,minion in pairs(minionManager.objects) do
 				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
 					CastTargetSpell(minion, _Q)
@@ -188,14 +192,14 @@ OnTick(function(myHero)
 	end -- End Clear Mode
 
 	if IOW:Mode() == "LaneClear" and not RCasting then
-		if JhinMenu.Farming.FarmQ:Value() then
+		if JhinMenu.Farming.FarmQ:Value() and (GetPercentMP(myHero) >= JhinMenu.Farming.FarmingMana:Value()) then
 			for i,minion in pairs(minionManager.objects) do
 				if IsObjectAlive(minion) and GetTeam(minion) == MINION_ENEMY and IsReady(_Q) and ValidTarget(minion, 600) and GetCurrentHP(minion) < CalcDamage(myHero, minion, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) then
 					CastTargetSpell(minion, _Q)
 				end
 			end
 		end
-		if IsReady(_E) and JhinMenu.Farming.FarmE:Value() then
+		if IsReady(_E) and JhinMenu.Farming.FarmE:Value() and (GetPercentMP(myHero) >= JhinMenu.Farming.FarmingMana:Value()) then
            local BestPos, BestHit = GetFarmPosition(750, 260, MINION_ENEMY)
            if BestPos and BestHit > 0 then 
            CastSkillShot(_E, BestPos)
@@ -207,12 +211,12 @@ OnTick(function(myHero)
 	if JhinMenu.Killsteal.Steal:Value() and not RCasting then
 		for i, enemy in pairs(GetEnemyHeroes()) do
 			if JhinMenu.Killsteal.StealQ:Value() then
-				if Ready(_Q) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 600) then
+				if Ready(_Q) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 35 + 25*GetCastLevel(myHero, _Q) + (0.25 + 0.05*GetCastLevel(myHero, _Q))*TotalDamage, 0) and ValidTarget(enemy, 600) then
 				    CastTargetSpell(enemy, _Q) 
 			    end
 			end	
 			if JhinMenu.Killsteal.StealW:Value() then
-				if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*GetBonusDmg(myHero), 0) and ValidTarget(enemy, 2500) then
+				if Ready(_W) and GetCurrentHP(enemy) + GetDmgShield(enemy) < CalcDamage(myHero, enemy, 15 + 35*GetCastLevel(myHero, _Q) + 0.7*TotalDamage, 0) and ValidTarget(enemy, 2500) then
 				    WPred = GetPredictionForPlayer(GetOrigin(myHero),target,GetMoveSpeed(enemy),math.huge,750,2500,50,false,true)
 					if WPred.HitChance == 1 then
 						CastSkillShot(_W, WPred.PredPos)
@@ -257,4 +261,10 @@ OnLoseVision(function(Object)
 	end
 end)
 
-print("[Royal] Jhin prototype loaded!")
+OnGainVision(function(Object)
+	if Object == GetCurrentTarget() and RCasting then
+	ShouldCast = true
+	end
+end)
+
+PrintChat("[Royal] Jhin prototype loaded!")
