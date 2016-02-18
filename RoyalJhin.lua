@@ -1,7 +1,5 @@
 if GetObjectName(GetMyHero()) ~= "Jhin" then return end
 
-AutoUpdate("/RoyalAegis/GoS/blob/Common/RoyalJhin.lua","/RoyalAegis/GoS/blob/Common/RoyalJhin.version","RoyalJhin.lua",2)
-
 require('Inspired')
 
 local JhinMenu = MenuConfig("Jhin", "Jhin")
