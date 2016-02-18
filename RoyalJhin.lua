@@ -130,8 +130,6 @@ OnDraw (function (myHero)
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
 	if JhinMenu.Drawings.DrawR:Value() then DrawCircle(pos,3500,1,60,GoS.Cyan) end
-	DrawCircle(GetOrigin(target),FindRadius,1,60,GoS.Cyan)
-	DrawCircle(pos,1700,1,60,GoS.Cyan)
 end)
 
 OnTick(function(myHero)	
