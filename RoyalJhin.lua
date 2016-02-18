@@ -1,5 +1,7 @@
 if GetObjectName(GetMyHero()) ~= "Jhin" then return end
 
+AutoUpdate("/RoyalAegis/GoS/blob/Common/RoyalJhin.lua","/RoyalAegis/GoS/blob/Common/RoyalJhin.version","RoyalJhin.lua",2)
+
 require('Inspired')
 
 local JhinMenu = MenuConfig("Jhin", "Jhin")
@@ -59,6 +61,7 @@ local RPred = nil
 local target = GetCurrentTarget()
 local OldTarget = target
 local ForceMovement = false
+local AllowForceMovement = true
 
 
 OnUpdateBuff(function(Object,buff) 
@@ -73,6 +76,9 @@ end)
 OnRemoveBuff(function(Object,buff)
 	if buff.Name == "jhinespotteddebuff" then
 		IsMarked = false
+	end
+	if buff.Name == "JhinPassiveReload" then
+		ForceMovement = false
 	end
 end)
 
@@ -126,6 +132,8 @@ OnDraw (function (myHero)
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
 	if JhinMenu.Drawings.DrawR:Value() then DrawCircle(pos,3500,1,60,GoS.Cyan) end
+	DrawCircle(GetOrigin(target),FindRadius,1,60,GoS.Cyan)
+	DrawCircle(pos,1700,1,60,GoS.Cyan)
 end)
 
 OnTick(function(myHero)	
@@ -240,11 +248,10 @@ OnTick(function(myHero)
 		end -- Noddy pls
 	end
 
-	if ForceMovement and not RCasting then
-		MoveToXYZ(GetMousePos())
+	if ForceMovement and not RCasting and KeyIsDown(32) then
 		DelayAction(function() 
-			ForceMovement = false
-		end, 2.5)
+			MoveToXYZ(GetMousePos())
+		end, 0.25)
 	end
 
 end)
@@ -263,6 +270,7 @@ function ResetUlt()
 	RCasting = false
 	RCast = 0
 	ShouldCast = false
+	OldTarget = GetCurrentTarget()
 end
 
 OnLoseVision(function(Object)
@@ -277,4 +285,4 @@ OnGainVision(function(Object)
 	end
 end)
 
-PrintChat("[Royal] Jhin prototype loaded!")
+PrintChat("[Royal] Jhin prototype loaded! v.2")
