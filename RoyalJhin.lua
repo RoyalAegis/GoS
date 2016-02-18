@@ -281,4 +281,4 @@ OnGainVision(function(Object)
 	end
 end)
 
-PrintChat("[Royal] Jhin prototype loaded! v.2")
+PrintChat(string.format("<font color='#00FFFF'>[Royal] Jhin, the Virtuoso:</font> <font color='#FFFFFF'> By R0yalHe1r Loaded, Have A Good Game! </font>"))
