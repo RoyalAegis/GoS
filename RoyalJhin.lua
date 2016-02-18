@@ -240,7 +240,7 @@ OnTick(function(myHero)
 		end -- Noddy pls
 	end
 
-	if ForceMovement then
+	if ForceMovement and not RCasting then
 		MoveToXYZ(GetMousePos())
 		DelayAction(function() 
 			ForceMovement = false
