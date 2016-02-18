@@ -8,15 +8,15 @@ JhinMenu:Menu("Combo")
 
 JhinMenu.Combo:Menu("QSettings", "Q - Settings")
 JhinMenu.Combo.QSettings:Boolean("Q", "Use Q", true)
-JhinMenu.Combo.QSettings:Slider("QMana", "Use Q if %Mana >", 60, 1, 100, 1)
+JhinMenu.Combo.QSettings:Slider("QMana", "Use Q if %Mana >", 35, 1, 100, 1)
 
 JhinMenu.Combo:Menu("WSettings", "W - Settings")
 JhinMenu.Combo.WSettings:Boolean("W", "Use W", true)
-JhinMenu.Combo.WSettings:Slider("WMana", "Use W if %Mana >", 60, 1, 100, 1)
+JhinMenu.Combo.WSettings:Slider("WMana", "Use W if %Mana >", 35, 1, 100, 1)
 
 JhinMenu.Combo:Menu("ESettings", "E - Settings")
 JhinMenu.Combo.ESettings:Boolean("E", "Use E", false)
-JhinMenu.Combo.ESettings:Slider("EMana", "Use E if %Mana >", 60, 1, 100, 1)
+JhinMenu.Combo.ESettings:Slider("EMana", "Use E if %Mana >", 35, 1, 100, 1)
 
 JhinMenu.Combo:Menu("RSettings", "R - Settings")
 JhinMenu.Combo.RSettings:Boolean("R", "Use R (Shooting)", false)
@@ -58,11 +58,15 @@ local FindRadius = 0
 local RPred = nil
 local target = GetCurrentTarget()
 local OldTarget = target
+local ForceMovement = false
 
 
 OnUpdateBuff(function(Object,buff) 
 	if buff.Name == "jhinespotteddebuff" then
 		IsMarked = true
+	end
+	if buff.Name == "JhinPassiveReload" then
+		ForceMovement = true
 	end
 end)
 
@@ -118,7 +122,6 @@ end)
 
 OnDraw (function (myHero)
 	local pos = GetOrigin(myHero)
-	local posTarget = GetOrigin(GetCurrentTarget())
 	if JhinMenu.Drawings.DrawQ:Value() then DrawCircle(pos,600,1,60,GoS.Red) end
 	if JhinMenu.Drawings.DrawW:Value() then DrawCircle(pos,2500,1,60,GoS.Yellow) end
 	if JhinMenu.Drawings.DrawE:Value() then DrawCircle(pos,750,1,60,GoS.Green) end
@@ -235,6 +238,13 @@ OnTick(function(myHero)
 		if GetItemID(myHero,ITEM_7) ~= 3363 then
 			BuyItem(3363)
 		end -- Noddy pls
+	end
+
+	if ForceMovement then
+		MoveToXYZ(GetMousePos())
+		DelayAction(function() 
+			ForceMovement = false
+		end, 2.5)
 	end
 
 end)
