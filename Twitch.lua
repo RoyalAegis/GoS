@@ -4,8 +4,6 @@ require('Inspired')
 require('DeftLib')
 require('DamageLib')
 
-AutoUpdate("/D3ftsu/GoS/master/Twitch.lua","/D3ftsu/GoS/master/Twitch.version","Twitch.lua",10)
-
 local TwitchMenu = MenuConfig("Twitch", "Twitch")
 TwitchMenu:Menu("Combo", "Combo")
 TwitchMenu.Combo:Boolean("Q", "Use Q", true)
@@ -33,6 +31,7 @@ TwitchMenu.Harass:Boolean("Erange", "Use E if target is out of range", false)
 TwitchMenu:Menu("Killsteal", "Killsteal")
 TwitchMenu.Killsteal:Boolean("E", "Killsteal with E", true)
 
+local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
 if Ignite ~= nil then
 TwitchMenu:Menu("Misc", "Misc")
 TwitchMenu.Misc:Boolean("AutoIgnite", "Auto Ignite", true)
@@ -61,7 +60,7 @@ if TwitchMenu.Drawings.E:Value() then DrawCircle(pos,1200,1,0,GoS.Yellow) end
 if TwitchMenu.Drawings.R:Value() then DrawCircle(pos,850,1,0,GoS.Green) end
 if TwitchMenu.Drawings.Vis:Value() then
 local drawPos = WorldToScreen(1,GetOrigin(myHero))
-  if not IsInvisible then
+  if IsInvisible then
   DrawText("STEALTH", 25, drawPos.x, drawPos.y, ARGB(255, 0, 255, 0))
   else
   DrawText("VISIBLE", 25, drawPos.x, drawPos.y, ARGB(255, 255, 0, 0))
